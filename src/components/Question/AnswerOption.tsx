@@ -6,7 +6,7 @@ interface AnswerOptionProps {
   isAnswered: boolean;
   answerSelected: number;
   index: number;
-  option: { text: string; isCorrect: boolean };
+  option: Answer;
   onSelectAnswer: (index: number) => void;
   checkAnswer: (index: number) => boolean;
 }

@@ -20,7 +20,7 @@ interface QuestionElementProps {
   currentQuestion: number;
   totalQuestions: number;
   question: string;
-  options: { text: string; isCorrect: boolean }[];
+  options: Answer[];
   isLastQuestion: boolean;
   isLoading: boolean;
   onNextQuestion: () => void;
@@ -148,7 +148,12 @@ export default function QuestionElement({
       </CardContent>
       <CardActions>
         {isLastQuestion && (
-          <Button variant="contained" fullWidth onClick={handleFinishExam}>
+          <Button
+            variant="contained"
+            fullWidth
+            disabled={isLoading || !isAnswered}
+            onClick={handleFinishExam}
+          >
             Finalizar
           </Button>
         )}

@@ -4,10 +4,7 @@ import { CircularProgress } from "@mui/material";
 import QuestionElement from "./QuestionElement";
 
 interface QuestionContainerProps {
-  options: {
-    text: string;
-    answers: { text: string; isCorrect: boolean }[];
-  }[];
+  options: Question[];
 }
 
 export default function QuestionContainer({ options }: QuestionContainerProps) {
