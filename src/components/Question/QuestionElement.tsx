@@ -10,35 +10,67 @@ import {
   LinearProgress,
   Typography,
 } from "@mui/material";
-import { use, useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import AnswerOption from "./AnswerOption";
+import { useAppContext } from "@/hooks/useAppContext";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface QuestionElementProps {
+  currentQuestion: number;
+  totalQuestions: number;
   question: string;
   options: { text: string; isCorrect: boolean }[];
+  isLastQuestion: boolean;
+  isLoading: boolean;
+  onNextQuestion: () => void;
 }
 
 export default function QuestionElement({
+  currentQuestion,
+  totalQuestions,
   question,
   options,
+  isLastQuestion,
+  isLoading,
+  onNextQuestion,
 }: QuestionElementProps) {
   const [progress, setProgress] = useState(0);
   const [isAnswered, setIsAnswered] = useState(false);
   const [answerSelected, setAnswerSelected] = useState(0);
   const [timeOut, setTimeOut] = useState(false);
+  const router = useRouter();
+
+  const { setAnswer, handleFinish } = useAppContext();
 
   const handleSelectAnswer = (index: number) => {
     setAnswerSelected(index);
     setIsAnswered(true);
     setProgress(100);
-
     if (index === -1) {
       setTimeOut(true);
+      return;
     }
+
+    setAnswer(options[index].isCorrect);
   };
 
   const checkAnswer = (index: number) => {
     return options[index].isCorrect;
+  };
+
+  const handleNextQuestion = () => {
+    if (isLastQuestion || isLoading || !isAnswered) {
+      return;
+    }
+
+    onNextQuestion();
+  };
+
+  const handleFinishExam = () => {
+    // Finalizar
+    handleFinish();
+    router.push("/questions/results");
   };
 
   useEffect(() => {
@@ -46,6 +78,12 @@ export default function QuestionElement({
     const endTime = startTime + 15000; // 15 segundos en milisegundos
 
     const interval = setInterval(() => {
+      if (isAnswered) {
+        setProgress(100);
+        clearInterval(interval);
+        return;
+      }
+
       const now = Date.now();
       const elapsedTime = now - startTime;
       const remainingTime = endTime - now;
@@ -62,37 +100,38 @@ export default function QuestionElement({
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [isAnswered]);
+
+  useEffect(() => {
+    if (progress === 100) {
+      if (!isAnswered) {
+        handleSelectAnswer(-1);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress]);
 
   return (
     <Card component="article" elevation={4} sx={{ mt: 2 }}>
       <CardHeader
         title={
           <Typography variant="h4" component="p" fontWeight="bold">
-            Pregunta 1 de 10
+            Pregunta {currentQuestion} de {totalQuestions}
           </Typography>
         }
         subheader="Selecciona la respuesta correcta"
       />
-      {timeOut && (
-        <Typography variant="h6" component="p" align="center" color="error">
-          ¡Se acabó el tiempo!
-        </Typography>
-      )}
-
-      <LinearProgress variant="determinate" value={progress} />
-
       <CardContent>
-        <Typography variant="body1" component="p">
+        {timeOut && (
+          <Typography variant="h6" component="p" align="center" color="error">
+            ¡Se acabó el tiempo!
+          </Typography>
+        )}
+        <LinearProgress variant="determinate" value={progress} />
+        <Typography variant="body1" component="p" mt={2}>
           {question}
         </Typography>
-        <Grid
-          display="grid"
-          gap={2}
-          gridTemplateColumns="repeat(2, 1fr)"
-          gridTemplateRows="repeat(2, 150px)"
-          mt={2}
-        >
+        <Grid display="grid" gap={2} mt={2}>
           {options.map((option, index) => (
             <Grid item key={option.text} xs={6} sm={3} md={2}>
               <AnswerOption
@@ -108,9 +147,21 @@ export default function QuestionElement({
         </Grid>
       </CardContent>
       <CardActions>
-        <Button variant="contained" fullWidth>
-          Siguiente
-        </Button>
+        {isLastQuestion && (
+          <Button variant="contained" fullWidth onClick={handleFinishExam}>
+            Finalizar
+          </Button>
+        )}
+        {!isLastQuestion && (
+          <Button
+            variant="contained"
+            fullWidth
+            disabled={isLoading || !isAnswered}
+            onClick={handleNextQuestion}
+          >
+            Siguiente
+          </Button>
+        )}
       </CardActions>
     </Card>
   );

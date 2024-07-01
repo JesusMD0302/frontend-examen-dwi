@@ -1,5 +1,6 @@
 import { Button } from "@mui/material";
-import React from "react";
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 interface AnswerOptionProps {
   isAnswered: boolean;
@@ -21,7 +22,7 @@ export default function AnswerOption({
   // Define los colores personalizados
   const successColor = "#4caf50"; // Verde
   const errorColor = "#f44336"; // Rojo
-  const infoColor = "#0288d1"; // Azul
+  const commonColor = "#8d8d8d"; // Azul
 
   return (
     <Button
@@ -31,6 +32,7 @@ export default function AnswerOption({
       fullWidth
       sx={{
         height: "100%",
+        justifyContent: "space-between",
         // Aplica estilos para el botón deshabilitado
         ":disabled": {
           color: "white",
@@ -41,13 +43,24 @@ export default function AnswerOption({
                 : errorColor
               : checkAnswer(index)
               ? successColor
-              : infoColor
-            : infoColor,
+              : commonColor
+            : commonColor,
         },
       }}
       onClick={() => onSelectAnswer(index)}
     >
       {option.text}
+      {isAnswered ? (
+        answerSelected === index ? (
+          checkAnswer(answerSelected) ? (
+            <CheckCircleOutlineIcon />
+          ) : (
+            <HighlightOffIcon />
+          )
+        ) : checkAnswer(index) ? (
+          <CheckCircleOutlineIcon />
+        ) : undefined
+      ) : undefined}
     </Button>
   );
 }
